@@ -12,16 +12,13 @@ const knex = require('knex')({
   }
 })
 
-const [node, path, name] = process.argv;
+const [node, path, firstName, lastName, dob] = process.argv;
 
-const findPerson = (name, cb) => {
+const listPeople = cb => {
   knex.select()
   .from('famous_people')
-  .where('first_name', name)
-  .orWhere('last_name', name)
   .asCallback(function(err, rows) {
     if (err) return console.error(err);
-    console.log(`Found ${rows.length} person(s) by the name ${name}`)
     cb(rows)
   })
   .finally(function() {
@@ -38,4 +35,13 @@ const printPeople = peopleArr => {
   }
 };
 
-findPerson(name, printPeople)
+const addPerson = (firstName, lastName, dob) => {
+  knex.insert([
+    {first_name: firstName, last_name: lastName, birthdate: dob}], ['id']).into('famous_people')
+    .finally(function() {
+      listPeople(printPeople)
+      knex.destroy();
+    })
+}
+
+addPerson(firstName, lastName, dob)
